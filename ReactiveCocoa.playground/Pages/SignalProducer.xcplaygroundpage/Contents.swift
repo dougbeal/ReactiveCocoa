@@ -351,6 +351,7 @@ scopedExample("`collect(count:)`") {
             observer.sendNext(2)
             observer.sendNext(3)
             observer.sendNext(4)
+            observer.sendNext(5)
             observer.sendCompleted()
         }
         .collect(count: 2)

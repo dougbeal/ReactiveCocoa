@@ -46,11 +46,11 @@ import Foundation
  */
 
 /*:
- ### `Subscription`
+ ### `Subscription with block`
  A SignalProducer represents an operation that can be started on demand. Starting the operation returns a Signal on which the result(s) of the operation can be observed. This behavior is sometimes also called "cold". 
 This means that a subscriber will never miss any valus sent by the SignalProducer.
  */
-scopedExample("Subscription") {
+scopedExample("Subscription with block") {
     let producer = SignalProducer<Int, NoError> { observer, _ in
         print("New subscription, starting operation")
         observer.sendNext(1)
@@ -67,6 +67,37 @@ scopedExample("Subscription") {
     // Notice, how the producer will start the work again
     producer.start(subscriber2)
 }
+
+
+/*:
+ ### `Subscription with signal`
+ A Signal represents and event stream that is already "in progress", sometimes also called "hot". This means, that a subscriber may miss events that have been sent before the subscription.
+ Furthermore, the subscription to a signal does not trigger any side effects
+ */
+scopedExample("Subscription with signal") {
+    // Signal.pipe is a way to manually control a signal. the returned observer can be used to send values to the signal
+    let (signal, observer) = Signal<Int, NoError>.pipe()
+    let producer = SignalProducer<Int, NoError>(signal)
+    let subscriber1 = Observer<Int, NoError>(next: { print("Subscriber 1 received \($0)") } )
+    let subscriber2 = Observer<Int, NoError>(next: { print("Subscriber 2 received \($0)") } )
+    
+    print("Subscriber 1 subscribes to the signal")
+    signal.observe(subscriber1)
+    
+    print("Send value `10` on the signal")
+    // subscriber1 will receive the value
+    observer.sendNext(10)
+    
+    print("Subscriber 2 subscribes to the signal")
+    // Notice how nothing happens at this moment, i.e. subscriber2 does not receive the previously sent value
+    signal.observe(subscriber2)
+    
+    print("Send value `20` on the signal")
+    // Notice that now, subscriber1 and subscriber2 will receive the value
+    observer.sendNext(20)
+}
+
+
 
 /*:
  ### `empty`

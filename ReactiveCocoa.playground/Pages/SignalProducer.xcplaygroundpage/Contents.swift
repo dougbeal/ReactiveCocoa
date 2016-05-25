@@ -77,24 +77,35 @@ scopedExample("Subscription with block") {
 scopedExample("Subscription with signal") {
     // Signal.pipe is a way to manually control a signal. the returned observer can be used to send values to the signal
     let (signal, observer) = Signal<Int, NoError>.pipe()
-    let producer = SignalProducer<Int, NoError>(signal)
+    let producer = SignalProducer<Int, NoError>(signal: signal)
     let subscriber1 = Observer<Int, NoError>(next: { print("Subscriber 1 received \($0)") } )
     let subscriber2 = Observer<Int, NoError>(next: { print("Subscriber 2 received \($0)") } )
+    let subscriber3 = Observer<Int, NoError>(next: { print("Subscriber 3 received \($0)") } )
     
-    print("Subscriber 1 subscribes to the signal")
-    signal.observe(subscriber1)
+    observer.sendNext(1)
+    observer.sendNext(2)
+    print("Subscriber 1 starts the producer")
+    producer.start(subscriber1)
     
     print("Send value `10` on the signal")
     // subscriber1 will receive the value
     observer.sendNext(10)
     
-    print("Subscriber 2 subscribes to the signal")
+    print("Subscriber 2 starts the producer")
     // Notice how nothing happens at this moment, i.e. subscriber2 does not receive the previously sent value
-    signal.observe(subscriber2)
+    producer.start(subscriber2)
     
     print("Send value `20` on the signal")
     // Notice that now, subscriber1 and subscriber2 will receive the value
     observer.sendNext(20)
+
+    print("Subscriber 3 starts the producer")
+    producer.start(subscriber3)
+    
+    print("Send value `30` on the signal")
+    // Notice that now, subscriber1 and subscriber2 will receive the value
+    observer.sendNext(30)
+    
 }
 
 
